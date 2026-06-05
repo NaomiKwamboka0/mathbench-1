@@ -165,6 +165,15 @@ Overall Accuracy : 6/6 (100.0%)   [backend: reference]
 
 ## Solve your own problem
 
+### In the browser (no terminal needed)
+
+Open [`web/index.html`](web/index.html) by double-clicking it. Paste a Gemini API
+key once (it is stored only in your browser), type any problem, and click Solve
+to watch the Planner decompose it and the Solver answer it. The page calls Gemini
+directly, so no server is required.
+
+### From the command line
+
 Pose any math problem and watch the Planner and Solver agents work it out live
 (requires a backend key; free-form answers are shown but not graded):
 
