@@ -125,24 +125,65 @@ The backend auto-selects: `gemini` when a Gemini key is set, else `claude` when
 
 ## Sample output
 
+### Live run against Google Gemini (`gemini-2.5-flash`)
+
+This is a real model run, not the answer key grading itself:
+
 ```
 ==============================================================================
-  MATHBENCH-1 RESULTS - Naomi Kwamboka Onyancha   [backend: reference]
+  MATHBENCH-1 RESULTS - Naomi Kwamboka Onyancha   [backend: gemini]
 ==============================================================================
 #   Problem                        Status   Agent Answer         Error/Diff
 ------------------------------------------------------------------------------
-1   Newton-Raphson Root Finding    [+] PASS 2.09455148           0.0
+1   Newton-Raphson Root Finding    [x] FAIL 2.09539875           0.00084727
 2   Numerical Integration (Simpson)[+] PASS 0.74682413           0.0
 3   Minimum Spanning Tree Cost     [+] PASS 23                   0
 4   Non-Attacking Rooks Placement  [+] PASS 376320               0
-5   95% Confidence Interval        [+] PASS (49.1514, 55.6486)   0.0
-6   Chi-Square Independence Test   [+] PASS chi2=1.0989, p=0.2945 0.0
+5   95% Confidence Interval        [+] PASS (49.151, 55.649)     0.0004
+6   Chi-Square Independence Test   [+] PASS chi2=1.0989, p=0.2944 0.0
 ------------------------------------------------------------------------------
 
-Overall Accuracy : 6/6 (100.0%)
-Problems Passed  : 6
-Problems Failed  : 0
+Overall Accuracy : 5/6 (83.3%)
+Problems Passed  : 5
+Problems Failed  : 1
 ==============================================================================
+```
+
+Gemini passes five of six. It fails Newton-Raphson by computing `2.09539875`
+versus the true `2.09455148` (off by ~8.5e-4, outside the 1e-6 tolerance):
+ten rounds of manual iterative arithmetic are exactly where language models slip,
+which is precisely the kind of weakness a benchmark exists to expose.
+
+### Offline run (`reference` backend)
+
+With no API key, the oracle acts as the solver, so every answer is exact and the
+suite scores 6/6. This verifies the pipeline and tolerance machinery end to end:
+
+```
+Overall Accuracy : 6/6 (100.0%)   [backend: reference]
+```
+
+## Solve your own problem
+
+Pose any math problem and watch the Planner and Solver agents work it out live
+(requires a backend key; free-form answers are shown but not graded):
+
+```bash
+python solve.py "What is the derivative of sin(x)*e^x evaluated at x=0?"
+# or run with no argument and type your problem at the prompt
+python solve.py
+```
+
+Example:
+
+```
+Planner: decomposing ...
+  1. Find the derivative of sin(x) * e^x using the product rule.
+  2. Evaluate the resulting derivative expression at x = 0.
+Solver: solving ...
+============================================================
+  ANSWER: 1
+============================================================
 ```
 
 ## Repository structure
@@ -163,6 +204,7 @@ mathbench-1/
     combinatorial_verifier.py    exact integer match
     statistical_verifier.py      interval + hypothesis-test checks
   run_benchmark.py         entry point (Planner -> Solver -> Verifier)
+  solve.py                 interactive: solve your own ad-hoc problem
   results_reporter.py      terminal table + JSON report
   tests/test_mathbench.py  oracle, verifiers, extraction, end-to-end
   Dockerfile  requirements.txt  .env.example
@@ -191,9 +233,13 @@ the single most important decision: it surfaced three incorrect reference values
 that a hand-typed benchmark would have shipped. Getting structured output from a
 model reliably also took real care, parsing has to survive fenced code blocks,
 stray prose, and minor key variations, which is why the verifier normalizes
-before it checks. Finally, separating the oracle, the solver, and the verifier
-into independent code paths is what gives the results their credibility: nothing
-in the pipeline is allowed to grade its own work.
+before it checks. Running against live Gemini taught me another lesson the hard
+way: "thinking" models spend output tokens on internal reasoning, so a token cap
+that looks generous can still truncate the answer JSON. Raising the cap and
+keeping the solver's output compact turned a string of false parse failures into
+clean, honest correctness results. Finally, separating the oracle, the solver,
+and the verifier into independent code paths is what gives the results their
+credibility: nothing in the pipeline is allowed to grade its own work.
 
 ---
 
