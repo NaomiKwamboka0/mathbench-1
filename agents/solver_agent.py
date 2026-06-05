@@ -36,7 +36,9 @@ Schema by answer type:
 - Statistical test:  {"statistic": <float>, "p_value": <float>,
                       "reject_null": <bool>, "steps": [...]}
 
-"steps" is a short list of strings describing your reasoning. Always include it.
+"steps" must be AT MOST 3 short strings (one brief sentence each). Do not list
+every iteration or computation; summarise. Keep the whole JSON object compact so
+it is always complete and valid. Put the final value in the answer field(s).
 """
 
 
@@ -66,8 +68,11 @@ class SolverAgent:
             f"Problem:\n{problem.statement}{hint}"
         )
         try:
+            # Generous cap: "thinking" models (e.g. gemini-2.5-flash) spend
+            # output tokens on internal reasoning, so a small cap truncates the
+            # answer JSON. 8192 leaves ample room for reasoning + the result.
             raw = self._client.complete(
-                system=SOLVER_SYSTEM, user=user, max_tokens=1024
+                system=SOLVER_SYSTEM, user=user, max_tokens=8192
             )
             data = extract_json(raw)
             data.setdefault("source", "model")

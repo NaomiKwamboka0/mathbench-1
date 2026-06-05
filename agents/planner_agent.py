@@ -35,7 +35,7 @@ class PlannerAgent:
                 raw = self._client.complete(
                     system=PLANNER_SYSTEM,
                     user=problem.statement,
-                    max_tokens=512,
+                    max_tokens=4096,
                 )
                 data = extract_json(raw)
                 steps = data.get("sub_steps")
