@@ -167,10 +167,12 @@ Overall Accuracy : 6/6 (100.0%)   [backend: reference]
 
 ### In the browser (no terminal needed)
 
-Open [`web/index.html`](web/index.html) by double-clicking it. Paste a Gemini API
-key once (it is stored only in your browser), type any problem, and click Solve
-to watch the Planner decompose it and the Solver answer it. The page calls Gemini
-directly, so no server is required.
+**Live demo: https://naomikwamboka0.github.io/mathbench-1/**
+
+Or open [`index.html`](index.html) locally by double-clicking it. Paste a Gemini
+API key once (it is stored only in your browser), type any problem, and click
+Solve to watch the Planner decompose it and the Solver answer it. The page calls
+Gemini directly, so no server is required.
 
 ### From the command line
 
